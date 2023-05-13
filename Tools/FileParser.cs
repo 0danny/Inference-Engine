@@ -29,6 +29,8 @@ namespace Inference_Engine.Tools
                     {
                         string tellLine = fileLines[i + 1];
 
+                        model.knowledgeBase = tellLine;
+
                         parseKnowledgeStrings(tellLine);
 
                         parsePropoisitonSymbols(tellLine);
@@ -52,9 +54,9 @@ namespace Inference_Engine.Tools
 
             foreach(Match m in symbolMatches)
             {
-                if(!model.propositionSymbols.Contains(m.Value))
+                if(!model.symbols.Contains(m.Value))
                 {
-                    model.propositionSymbols.Add(m.Value.Trim());
+                    model.symbols.Add(m.Value.Trim());
                 }   
             }
         }
@@ -65,7 +67,12 @@ namespace Inference_Engine.Tools
             {
                 if (!string.IsNullOrEmpty(line))
                 {
-                    model.knowledgeStrings.Add(line.Trim());
+                    if(line.Contains("=>") || line.Contains("&"))
+                    {
+                        model.sentences.Add(line.Trim());
+                    }
+
+                    model.unfilteredSentences.Add(line.Trim());
                 }
             }
         }

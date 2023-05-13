@@ -1,7 +1,9 @@
 ﻿using Inference_Engine.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,78 +19,183 @@ namespace Inference_Engine.Methods
 
         public override void runMethod(KnowledgeModel model)
         {
-            //initialise and create the truth table for all symbols
-            int[,] truthTable;
-            truthTable = createBinaryTable(model.propositionSymbols);
+            List<Dictionary<string, bool>> models = generateModels(model.symbols);
 
-            //evaluate truth values for all sentences
-            evaluateSentences(truthTable, model.knowledgeStrings);
+            EntailmentQuery entails = checkEntailment(models, model);
+
+            Console.WriteLine(entails.getEntailmentResponse());
         }
 
-        public int[,] createBinaryTable(List<string> symbols)
+        public void printTruthTable(List<Dictionary<string, bool>> models, KnowledgeModel model)
         {
-            //calculate number of rows
-            int rows = (int)Math.Pow(2, symbols.Count);
+            // Print the header row
+            Console.Write("Model\t");
 
-            //initialise table
-            int[,] ttable = new int[rows, symbols.Count];
-
-            for (int i = 0; i < rows; i++)
+            foreach (string symbol in model.symbols)
             {
-                int rownumber = i;
-                //for each row, take the row number and convert to binary, then input each bit into the table.
+                Console.Write($"{symbol}\t");
+            }
 
-                for(int j  = 0; j < symbols.Count; j++)
+            foreach (string knowledgeString in model.sentences)
+            {
+                Console.Write($"{knowledgeString}\t");
+            }
+
+            Console.Write($"{model.getKB()}\t");
+
+            Console.WriteLine();
+
+            // Print each row of the truth table
+            int modelNumber = 1;
+
+            foreach (Dictionary<string, bool> m in models)
+            {
+                Console.Write($"M{modelNumber++}\t");
+
+                foreach (string symbol in model.symbols)
                 {
-                    int bit = rownumber % 2; //find least significant bit
-                    rownumber /= 2; //shift bits to the right
-                    ttable[i, j] = bit; //input least significant bit
+                    Console.Write($"{m[symbol]}\t");
+                }
+
+                foreach (string knowledgeString in model.sentences)
+                {
+                    Console.Write($"{evaluateExpression(knowledgeString, m)}\t");
+                }
+                Console.Write($"{evaluateKnowledgeBase(m, model)}\t");
+
+                Console.WriteLine();
+            }
+        }
+
+        public bool evaluateKnowledgeBase(Dictionary<string, bool> model, KnowledgeModel knowledgeModel)
+        {
+            List<bool> temp_array = new();
+
+            foreach(string sentence in knowledgeModel.unfilteredSentences)
+            {
+                temp_array.Add(evaluateExpression(sentence, model));
+            }
+
+            return temp_array.All(x => x);
+        }
+
+        private List<Dictionary<string, bool>> generateModels(List<string> symbols)
+        {
+            // Initialize the queue with an empty model.
+            Queue<Dictionary<string, bool>> queue = new();
+
+            queue.Enqueue(new Dictionary<string, bool>());
+
+            foreach (string symbol in symbols)
+            {
+                // Make a temporary queue to hold the extended models.
+                Queue<Dictionary<string, bool>> tempQueue = new();
+
+                while (queue.Count > 0)
+                {
+                    // Remove the next model from the queue.
+                    Dictionary<string, bool> model = queue.Dequeue();
+
+                    // Extend the model with the current symbol being true and false.
+                    Dictionary<string, bool> modelFalse = new(model);
+                    modelFalse[symbol] = false;
+
+                    Dictionary<string, bool> modelTrue = new(model);
+                    modelTrue[symbol] = true;
+
+                    tempQueue.Enqueue(modelFalse);
+
+                    tempQueue.Enqueue(modelTrue);
+                }
+
+                // Replace the original queue with the temporary queue.
+                queue = tempQueue;
+            }
+
+            // Convert the queue to a list and return it.
+            return queue.ToList();
+        }
+
+        private EntailmentQuery checkEntailment(List<Dictionary<string, bool>> models, KnowledgeModel knowledgeModel)
+        {
+            List<bool> temp_array = new();
+
+            int counter = 0;
+
+            foreach (Dictionary<string, bool> m in models)
+            {
+                //Compare the query with the knowledge base.
+
+                bool KB = evaluateKnowledgeBase(m, knowledgeModel);
+
+                bool query = m[knowledgeModel.query];
+
+                if(KB)
+                {
+                    temp_array.Add(query);
+
+                    counter++;
                 }
             }
 
-            return ttable;
+            bool result = temp_array.All(x => x);
+
+            return new EntailmentQuery(result, counter);
         }
 
-        public void evaluateSentences(int[,] ttable, List<string> strings)
+        private bool evaluateExpression(string expression, Dictionary<string, bool> model)
         {
-            //loop through each sentence
-            for (int i = 0; i < strings.Count; ++i)
-            {
-                //set the current sentence
-                string sentence = strings[i];
+            // split the expression into parts by the main operator
+            string[] parts;
 
-                //evaluate that sentence for each combination in the truth table
-                evaluateSentence(ttable, sentence);
+            // => is only false when A is true and B is false.
+
+            if (expression.Contains("=>"))
+            {
+                parts = expression.Split(new string[] { "=>" }, StringSplitOptions.None);
+
+                bool a = evaluateExpression(parts[0], model);
+
+                bool b = evaluateExpression(parts[1], model);
+
+                return (a && !b) ? false : true;
+            }
+            else if (expression.Contains("&"))
+            {
+                parts = expression.Split(new string[] { "&" }, StringSplitOptions.None);
+
+                return evaluateExpression(parts[0], model) && evaluateExpression(parts[1], model);
+            }
+            else
+            {
+                // symbol by itself, look it up in the models dictionary.
+                string symbol = expression.Trim();
+                return model.ContainsKey(symbol) && model[symbol];
             }
         }
 
-        public int[] evaluateSentence(int[,] ttable, string sentence)
+        private class EntailmentQuery
         {
-            int rows = ttable.GetLength(0);
-            int columns = ttable.GetLength(1);
+            private bool response { get; set; } = false;
+            private int symbolsEntailed { get; set; } = 0;
 
-            int[] results = new int[rows];
-
-            //loop through each row in the truth table and add truth value to results
-            for(int i = 0; i < rows; ++i)
+            public EntailmentQuery(bool response, int symbolsEntailed)
             {
-                int[] rowValues = new int[columns];
+                this.response = response;
+                this.symbolsEntailed = symbolsEntailed;
+            }
 
-                for(int j = 0; j < columns; j++)
+            public string getEntailmentResponse()
+            {
+                if (!response)
                 {
-                    rowValues[j] = ttable[i, j];
+                    return "NO";
                 }
-
-                results[i] = truthValue(sentence, rowValues);
+                else
+                {
+                    return $"YES: {symbolsEntailed}";
+                }
             }
-
-            return results;
-        }
-
-        public int truthValue(string sentence, int[] rowValues)
-        {
-            //evaluate whether sentence is true according to the truth values set and return true or false
-            return 0;
         }
     }
 }

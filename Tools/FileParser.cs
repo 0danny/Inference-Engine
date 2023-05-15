@@ -67,11 +67,8 @@ namespace Inference_Engine.Tools
             {
                 if (!string.IsNullOrEmpty(line))
                 {
-                    if(line.Contains("=>") || line.Contains("&"))
-                    {
-                        model.sentences.Add(line.Trim());
-                    }
-
+                    model.sentences.Add(line.Trim());
+                    
                     model.unfilteredSentences.Add(line.Trim());
                 }
             }

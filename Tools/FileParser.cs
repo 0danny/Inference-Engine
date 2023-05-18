@@ -33,7 +33,7 @@ namespace Inference_Engine.Tools
 
                         parseKnowledgeStrings(tellLine);
 
-                        parsePropoisitonSymbols(tellLine);
+                        parsePropositonSymbols(tellLine);
                     }
 
                     //If the current line == 'ask' then the next line is teh query string.
@@ -48,16 +48,16 @@ namespace Inference_Engine.Tools
             return model;
         }
 
-        private void parsePropoisitonSymbols(string tellLine)
+        private void parsePropositonSymbols(string tellLine)
         {
             MatchCollection symbolMatches = Regex.Matches(tellLine, @"[a-z]\d*");
 
-            foreach(Match m in symbolMatches)
+            foreach (Match m in symbolMatches)
             {
-                if(!model.symbols.Contains(m.Value))
+                if (!model.symbols.Contains(m.Value))
                 {
                     model.symbols.Add(m.Value.Trim());
-                }   
+                }
             }
         }
 
@@ -68,8 +68,6 @@ namespace Inference_Engine.Tools
                 if (!string.IsNullOrEmpty(line))
                 {
                     model.sentences.Add(line.Trim());
-                    
-                    model.unfilteredSentences.Add(line.Trim());
                 }
             }
         }

@@ -21,12 +21,12 @@ namespace Inference_Engine.Methods
 
         public override void runMethod(KnowledgeModel model)
         {
-            EntailmentQuery entails = checkEntailment(model);
+            FCQuery entails = checkEntailment(model);
 
             Console.WriteLine(entails.getEntailmentResponse());
         }
 
-        private EntailmentQuery checkEntailment(KnowledgeModel model)
+        private FCQuery checkEntailment(KnowledgeModel model)
         {
             bool result = false;
 
@@ -76,7 +76,7 @@ namespace Inference_Engine.Methods
                 i++;
             }
 
-            return new EntailmentQuery(result, queue);
+            return new FCQuery(result, queue);
         }
 
         private List<string> evaluateSentences(IDictionary<string, int> values, List<string> filteredSentences, List<string> queue)
@@ -98,30 +98,6 @@ namespace Inference_Engine.Methods
             }
 
             return queue;
-        }
-
-        private class EntailmentQuery
-        {
-            private bool response { get; set; } = false;
-            private List<string> queue { get; set; } = null;
-
-            public EntailmentQuery(bool response, List<string> queue)
-            {
-                this.response = response;
-                this.queue = queue;
-            }
-
-            public string getEntailmentResponse()
-            {
-                if (!response)
-                {
-                    return "NO";
-                }
-                else
-                {
-                    return $"YES: [{String.Join(",", queue)}]";
-                }
-            }
         }
     }
 }

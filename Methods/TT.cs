@@ -21,9 +21,42 @@ namespace Inference_Engine.Methods
         {
             List<Dictionary<string, bool>> models = generateModels(model.symbols);
 
-            EntailmentQuery entails = checkEntailment(models, model);
+            TTQuery entails = checkEntailment(models, model);
 
             Console.WriteLine(entails.getEntailmentResponse());
+
+            //testFunction(models[0], model);
+
+            //printTruthTable(models, model);
+        }
+
+        public void testFunction(Dictionary<string, bool> model1, KnowledgeModel model)
+        {
+            foreach (string symbol in model.symbols)
+            {
+                Console.Write($"{symbol}\t");
+            }
+
+            foreach (string knowledgeString in model.sentences)
+            {
+                Console.Write($"{knowledgeString}\t");
+            }
+
+            Console.Write($"{model.getKB()}\t");
+
+            Console.WriteLine();
+
+            foreach (string symbol in model.symbols)
+            {
+                Console.Write($"{model1[symbol]}\t");
+            }
+
+            foreach (string knowledgeString in model.sentences)
+            {
+                //Console.Write($"{evaluateExpression(knowledgeString, model1)}\t");
+            }
+
+            Console.WriteLine(evaluateExpression("(a <=> (c => ~d)) & b & (b => a)", model1));
         }
 
         public void printTruthTable(List<Dictionary<string, bool>> models, KnowledgeModel model)
@@ -71,7 +104,7 @@ namespace Inference_Engine.Methods
         {
             List<bool> temp_array = new();
 
-            foreach(string sentence in knowledgeModel.unfilteredSentences)
+            foreach (string sentence in knowledgeModel.sentences)
             {
                 temp_array.Add(evaluateExpression(sentence, model));
             }
@@ -116,7 +149,8 @@ namespace Inference_Engine.Methods
             return queue.ToList();
         }
 
-        private EntailmentQuery checkEntailment(List<Dictionary<string, bool>> models, KnowledgeModel knowledgeModel)
+
+        private TTQuery checkEntailment(List<Dictionary<string, bool>> models, KnowledgeModel knowledgeModel)
         {
             List<bool> temp_array = new();
 
@@ -130,7 +164,7 @@ namespace Inference_Engine.Methods
 
                 bool query = m[knowledgeModel.query];
 
-                if(KB)
+                if (KB)
                 {
                     temp_array.Add(query);
 
@@ -140,7 +174,12 @@ namespace Inference_Engine.Methods
 
             bool result = temp_array.All(x => x);
 
-            return new EntailmentQuery(result, counter);
+            return new TTQuery(result, counter);
+        }
+
+        private string removeBraces(string theString)
+        {
+            return theString.Replace("(", "").Replace(")", "");
         }
 
         private bool evaluateExpression(string expression, Dictionary<string, bool> model)
@@ -148,53 +187,35 @@ namespace Inference_Engine.Methods
             // split the expression into parts by the main operator
             string[] parts;
 
-            // => is only false when A is true and B is false.
-
             if (expression.Contains("=>"))
             {
-                parts = expression.Split(new string[] { "=>" }, StringSplitOptions.None);
+                parts = expression.Split(new string[] { "=>" }, 2, StringSplitOptions.TrimEntries);
+
+                //Console.WriteLine($"Operator: => | Left: {parts[0]} | Right: {parts[1]}");
 
                 bool a = evaluateExpression(parts[0], model);
 
                 bool b = evaluateExpression(parts[1], model);
 
-                return (a && !b) ? false : true;
+                return (!a || b);
             }
             else if (expression.Contains("&"))
             {
-                parts = expression.Split(new string[] { "&" }, StringSplitOptions.None);
+                parts = expression.Split(new string[] { "&" }, 2, StringSplitOptions.TrimEntries);
+
+                //Console.WriteLine($"Operator: & | Left: {parts[0]} | Right: {parts[1]}");
 
                 return evaluateExpression(parts[0], model) && evaluateExpression(parts[1], model);
             }
             else
             {
+                expression = removeBraces(expression);
+
+                //Console.WriteLine($"Operator: Checking Symbol | Expression: {expression}");
+
                 // symbol by itself, look it up in the models dictionary.
                 string symbol = expression.Trim();
                 return model.ContainsKey(symbol) && model[symbol];
-            }
-        }
-
-        private class EntailmentQuery
-        {
-            private bool response { get; set; } = false;
-            private int symbolsEntailed { get; set; } = 0;
-
-            public EntailmentQuery(bool response, int symbolsEntailed)
-            {
-                this.response = response;
-                this.symbolsEntailed = symbolsEntailed;
-            }
-
-            public string getEntailmentResponse()
-            {
-                if (!response)
-                {
-                    return "NO";
-                }
-                else
-                {
-                    return $"YES: {symbolsEntailed}";
-                }
             }
         }
     }

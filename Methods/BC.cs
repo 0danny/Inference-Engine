@@ -20,12 +20,12 @@ namespace Inference_Engine.Methods
 
         public override void runMethod(KnowledgeModel model)
         {
-            EntailmentQuery entails = checkEntailment(model);
+            BCQuery entails = checkEntailment(model);
 
             Console.WriteLine(entails.getEntailmentResponse());
         }
 
-        private EntailmentQuery checkEntailment(KnowledgeModel model)
+        private BCQuery checkEntailment(KnowledgeModel model)
         {
             //find all rules and create list
             List<string> rules = new List<string>();
@@ -39,7 +39,7 @@ namespace Inference_Engine.Methods
             List<string> searchpath = new List<string>();
             searchpath.Add(model.query);
 
-            return new EntailmentQuery(evaluateSentences(model.query, rules, facts, searchpath), searchpath);
+            return new BCQuery(evaluateSentences(model.query, rules, facts, searchpath), searchpath);
         }
 
         private bool evaluateSentences(string symbol, List<string> rules, List<string> facts, List<string> searchpath)
@@ -69,15 +69,7 @@ namespace Inference_Engine.Methods
                         i++;
                     }
 
-                    if(partstruth.All(b => b == true))
-                    {
-                        return true;
-                    }
-
-                    else
-                    {
-                        return false;
-                    }
+                    return partstruth.All(b => b == true);
                 }
 
                 else
@@ -100,38 +92,7 @@ namespace Inference_Engine.Methods
 
         private bool isFact(string s, List<string> facts)
         {
-            if (facts.Contains(s))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private class EntailmentQuery
-        {
-            private bool response { get; set; } = false;
-            private List<string> searchpath { get; set; } = null;
-
-            public EntailmentQuery(bool response, List<string> searchpath)
-            {
-                this.response = response;
-                this.searchpath = searchpath;
-            }
-
-            public string getEntailmentResponse()
-            {
-                if (!response)
-                {
-                    return "NO";
-                }
-                else
-                {
-                    return $"YES: [{String.Join(",", searchpath)}]";
-                }
-            }
+            return facts.Contains(s);
         }
     }
 }

@@ -12,8 +12,6 @@ namespace Inference_Engine.Models
 
         public List<string> symbols { get; set; } = new();
 
-        public List<string> unfilteredSentences { get; set;} = new();
-
         public string knowledgeBase { get; set; } = "";
 
         public string query { get; set; } = "";
@@ -21,7 +19,7 @@ namespace Inference_Engine.Models
         //Debug functions.
         public string getKB()
         {
-            return $"({knowledgeBase.Replace(";", " ^")})";
+            return $"{knowledgeBase.Replace(";", " ^")}";
         }
 
         public void printData()
@@ -30,6 +28,11 @@ namespace Inference_Engine.Models
 
             Console.WriteLine("Knowledge Strings: ");
             Console.WriteLine(string.Join(Environment.NewLine, sentences.Select(m => $"[{m}]")));
+
+            Console.WriteLine();
+
+            Console.WriteLine("Whole KB: ");
+            Console.WriteLine(knowledgeBase);
 
             Console.WriteLine();
 

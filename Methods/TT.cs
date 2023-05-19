@@ -140,7 +140,7 @@ namespace Inference_Engine.Methods
 
                 bool KB = evaluateKnowledgeBase(m, knowledgeModel);
 
-                bool query = m[knowledgeModel.query];
+                bool query = evaluateExpression(knowledgeModel.query, m);
 
                 if (KB)
                 {

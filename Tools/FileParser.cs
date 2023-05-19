@@ -54,9 +54,11 @@ namespace Inference_Engine.Tools
 
             foreach (Match m in symbolMatches)
             {
-                if (!model.symbols.Contains(m.Value))
+                string symbol = m.Value.Trim();
+
+                if (!model.symbols.Contains(symbol))
                 {
-                    model.symbols.Add(m.Value.Trim());
+                    model.symbols.Add(symbol);
                 }
             }
         }

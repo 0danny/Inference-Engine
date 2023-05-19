@@ -1,8 +1,10 @@
 ﻿using Inference_Engine.Models;
+using Inference_Engine.Tools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,38 +27,23 @@ namespace Inference_Engine.Methods
 
             Console.WriteLine(entails.getEntailmentResponse());
 
-            //testFunction(models[0], model);
-
-            //printTruthTable(models, model);
+            printTruthTable(models, model);
         }
 
-        public void testFunction(Dictionary<string, bool> model1, KnowledgeModel model)
+        public void printModel(int index, List<Dictionary<string, bool>> models, KnowledgeModel model)
         {
             foreach (string symbol in model.symbols)
             {
                 Console.Write($"{symbol}\t");
             }
 
-            foreach (string knowledgeString in model.sentences)
-            {
-                Console.Write($"{knowledgeString}\t");
-            }
-
-            Console.Write($"{model.getKB()}\t");
-
             Console.WriteLine();
-
             foreach (string symbol in model.symbols)
             {
-                Console.Write($"{model1[symbol]}\t");
+                Console.Write($"{models[index][symbol]}\t");
             }
 
-            foreach (string knowledgeString in model.sentences)
-            {
-                //Console.Write($"{evaluateExpression(knowledgeString, model1)}\t");
-            }
-
-            Console.WriteLine(evaluateExpression("(a <=> (c => ~d)) & b & (b => a)", model1));
+            Console.WriteLine();
         }
 
         public void printTruthTable(List<Dictionary<string, bool>> models, KnowledgeModel model)
@@ -69,12 +56,7 @@ namespace Inference_Engine.Methods
                 Console.Write($"{symbol}\t");
             }
 
-            foreach (string knowledgeString in model.sentences)
-            {
-                Console.Write($"{knowledgeString}\t");
-            }
-
-            Console.Write($"{model.getKB()}\t");
+            Console.Write($"KB\t");
 
             Console.WriteLine();
 
@@ -90,10 +72,6 @@ namespace Inference_Engine.Methods
                     Console.Write($"{m[symbol]}\t");
                 }
 
-                foreach (string knowledgeString in model.sentences)
-                {
-                    Console.Write($"{evaluateExpression(knowledgeString, m)}\t");
-                }
                 Console.Write($"{evaluateKnowledgeBase(m, model)}\t");
 
                 Console.WriteLine();
@@ -177,46 +155,57 @@ namespace Inference_Engine.Methods
             return new TTQuery(result, counter);
         }
 
-        private string removeBraces(string theString)
+        public bool evaluateExpression(string infixExpression, Dictionary<string, bool> model)
         {
-            return theString.Replace("(", "").Replace(")", "");
+            string postfixExpression = ShuntingYard.convertInfixToPostfix(infixExpression);
+
+            Stack<bool> stack = new Stack<bool>();
+
+            string[] tokens = postfixExpression.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var token in tokens)
+            {
+                if (model.ContainsKey(token))  // token is a variable
+                {
+                    stack.Push(model[token]);
+                }
+                else  // token is an operator
+                {
+                    bool result;
+                    switch (token)
+                    {
+                        case "~":
+                            bool operand = stack.Pop();
+                            result = !operand;
+                            break;
+                        case "&":
+                            bool operand2 = stack.Pop(); // order of popping is reversed
+                            bool operand1 = stack.Pop();
+                            result = operand1 && operand2;
+                            break;
+                        case "=>":
+                            bool b = stack.Pop(); // order of popping is reversed
+                            bool a = stack.Pop();
+                            result = !a || b;
+                            break;
+                        case "<=>":
+                            bool d = stack.Pop(); // order of popping is reversed
+                            bool c = stack.Pop();
+                            result = (c && d) || (!c && !d);
+                            break;
+                        case "||":
+                            bool f = stack.Pop(); // order of popping is reversed
+                            bool e = stack.Pop();
+                            result = e || f;
+                            break;
+                        default:
+                            throw new ArgumentException($"Unknown operator: {token}");
+                    }
+                    stack.Push(result);
+                }
+            }
+            return stack.Pop();
         }
 
-        private bool evaluateExpression(string expression, Dictionary<string, bool> model)
-        {
-            // split the expression into parts by the main operator
-            string[] parts;
-
-            if (expression.Contains("=>"))
-            {
-                parts = expression.Split(new string[] { "=>" }, 2, StringSplitOptions.TrimEntries);
-
-                //Console.WriteLine($"Operator: => | Left: {parts[0]} | Right: {parts[1]}");
-
-                bool a = evaluateExpression(parts[0], model);
-
-                bool b = evaluateExpression(parts[1], model);
-
-                return (!a || b);
-            }
-            else if (expression.Contains("&"))
-            {
-                parts = expression.Split(new string[] { "&" }, 2, StringSplitOptions.TrimEntries);
-
-                //Console.WriteLine($"Operator: & | Left: {parts[0]} | Right: {parts[1]}");
-
-                return evaluateExpression(parts[0], model) && evaluateExpression(parts[1], model);
-            }
-            else
-            {
-                expression = removeBraces(expression);
-
-                //Console.WriteLine($"Operator: Checking Symbol | Expression: {expression}");
-
-                // symbol by itself, look it up in the models dictionary.
-                string symbol = expression.Trim();
-                return model.ContainsKey(symbol) && model[symbol];
-            }
-        }
     }
 }

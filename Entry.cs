@@ -61,7 +61,7 @@ namespace Inference_Engine
         private static void Main(string[] args)
         {
             //Hardcoded for the time being, will remove once assignment is ready for submission.
-            args = new string[] { "BC", "Test Data\\test_BC5.txt" };
+            args = new string[] { "FC", "Test Data\\test_BC4.txt" };
 
             Entry entry = new(args);
         }

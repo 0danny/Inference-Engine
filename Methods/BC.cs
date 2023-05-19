@@ -44,41 +44,58 @@ namespace Inference_Engine.Methods
 
         private bool evaluateSentences(string symbol, List<string> rules, List<string> facts, List<string> searchpath)
         {
+            //find all sentences where the desired symbol is on the left
             List<string> filteredSentences = rules.Where(s => s.Contains(symbol) && s.IndexOf(symbol) > s.IndexOf("=>")).ToList();
             
             foreach (string s in filteredSentences)
             {
+                //take the right side of the sentence
                 string news = s.Split(new[] { "=>" }, StringSplitOptions.None)[0].Trim();
 
+                //if there are two variables do this
                 if (news.Contains("&"))
                 {
+                    //take each variable and test whether it is a fact or not, then add to partstruth array
+                   
                     string[] parts = news.Split(new[] { "&" }, StringSplitOptions.None);
                     bool[] partstruth = new bool[parts.Length];
 
                     int i = 0;
                     while(i < parts.Length)
                     {
-                        if (isFact(parts[i], rules))
+
+                        if (isFact(parts[i], facts))
                         {
+                            //each time a variable is tested, it is added to the search path
+                            searchpath.Add(parts[i]);
                             partstruth[i] = true;
                         }
                         else
                         {
+                            //if the variable is not a fact, evaluate all sentences related to it, and set this as the truth value
+                            searchpath.Add(parts[i]);
                             partstruth[i] = evaluateSentences(parts[i], rules, facts, searchpath);
                         }
                         i++;
                     }
 
-                    return partstruth.All(b => b == true);
+                    //if both variables are true, return true
+                    if(partstruth.All(b => b == true))
+                    {
+                        return true;
+                    };
                 }
 
+                //if only one variable in sentence do this
                 else
                 {
+                    //if variable is a fact return true
                     if (isFact(news, facts))
                     {
                         searchpath.Add(news);
                         return true;
                     }
+                    //otherwise evaluate all related sentences and return this
                     else
                     {
                         searchpath.Add(news);
@@ -86,7 +103,6 @@ namespace Inference_Engine.Methods
                     }
                 }
             }
-
             return false;
         }
 

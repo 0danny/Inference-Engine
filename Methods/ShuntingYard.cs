@@ -66,6 +66,8 @@ namespace Inference_Engine.Methods
             return tokens;
         }
 
+        //GeneralKB3 =  "a c d ~ & <=> b & b a => &".
+
         public static string convertInfixToPostfix(string infix)
         {
             Stack<string> stack = new Stack<string>();
@@ -78,9 +80,9 @@ namespace Inference_Engine.Methods
             {
                 string token = tokens[i];
 
-                if (Operators.operatorsPrecedence.ContainsKey(token))
+                if (Operators.operatorFunctions.ContainsKey(token))
                 {
-                    while (stack.Count > 0 && Operators.operatorsPrecedence[token] <= (Operators.operatorsPrecedence.ContainsKey(stack.Peek()) ? Operators.operatorsPrecedence[stack.Peek()] : -1))
+                    while (stack.Count > 0 && Operators.operatorFunctions[token].OperatorPriority <= (Operators.operatorFunctions.ContainsKey(stack.Peek()) ? Operators.operatorFunctions[stack.Peek()].OperatorPriority : -1))
                     {
                         outputQueue.Enqueue(stack.Pop());
                     }

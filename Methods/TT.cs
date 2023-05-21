@@ -30,22 +30,6 @@ namespace Inference_Engine.Methods
             printTruthTable(models, model);
         }
 
-        public void printModel(int index, List<Dictionary<string, bool>> models, KnowledgeModel model)
-        {
-            foreach (string symbol in model.symbols)
-            {
-                Console.Write($"{symbol}\t");
-            }
-
-            Console.WriteLine();
-            foreach (string symbol in model.symbols)
-            {
-                Console.Write($"{models[index][symbol]}\t");
-            }
-
-            Console.WriteLine();
-        }
-
         public void printTruthTable(List<Dictionary<string, bool>> models, KnowledgeModel model)
         {
             // Print the header row
@@ -171,37 +155,17 @@ namespace Inference_Engine.Methods
                 }
                 else  // token is an operator
                 {
-                    bool result;
-                    switch (token)
+                    if (Operators.operatorFunctions.ContainsKey(token))
                     {
-                        case "~":
-                            bool operand = stack.Pop();
-                            result = !operand;
-                            break;
-                        case "&":
-                            bool operand2 = stack.Pop(); // order of popping is reversed
-                            bool operand1 = stack.Pop();
-                            result = operand1 && operand2;
-                            break;
-                        case "=>":
-                            bool b = stack.Pop(); // order of popping is reversed
-                            bool a = stack.Pop();
-                            result = !a || b;
-                            break;
-                        case "<=>":
-                            bool d = stack.Pop(); // order of popping is reversed
-                            bool c = stack.Pop();
-                            result = (c && d) || (!c && !d);
-                            break;
-                        case "||":
-                            bool f = stack.Pop(); // order of popping is reversed
-                            bool e = stack.Pop();
-                            result = e || f;
-                            break;
-                        default:
-                            throw new ArgumentException($"Unknown operator: {token}");
+                        bool operand2 = (token == "~" ? false : stack.Pop());
+                        bool operand1 = stack.Pop();
+
+                        stack.Push(Operators.operatorFunctions[token].OperatorFunction(operand1, operand2));
                     }
-                    stack.Push(result);
+                    else
+                    {
+                        throw new ArgumentException($"Unknown operator: {token}");
+                    }
                 }
             }
             return stack.Pop();

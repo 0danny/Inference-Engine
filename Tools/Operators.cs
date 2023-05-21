@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,14 +29,27 @@ namespace Inference_Engine.Tools
             return operatorsSplit.Any(c => c[0] == charCheck);
         }
 
-        //Used for shunting yard infix to prefix conversion and for evaluating.
-        public static Dictionary<string, int> operatorsPrecedence = new Dictionary<string, int>()
+        public static Dictionary<string, OperatorBase> operatorFunctions = new Dictionary<string, OperatorBase>()
         {
-            ["~"] = 4,
-            ["&"] = 3,
-            ["||"] = 2,
-            ["=>"] = 1,
-            ["<=>"] = 0
+            ["~"] = new OperatorBase(4, (x, y) => !x),
+            ["&"] = new OperatorBase(3, (x, y) => x && y),
+            ["=>"] = new OperatorBase(1, (x, y) => !x || y),
+            ["<=>"] = new OperatorBase(0, (x, y) => (x && y) || (!x && !y)),
+            ["||"] = new OperatorBase(2, (x, y) => x || y)
         };
     }
+
+    public class OperatorBase
+    {
+        public int OperatorPriority { get; set; }
+        public Func<bool, bool, bool> OperatorFunction { get; set; }
+
+        public OperatorBase(int operatorPriority, Func<bool, bool, bool> operatorFunction)
+        {
+            OperatorPriority = operatorPriority;
+            OperatorFunction = operatorFunction;
+        }
+    }
 }
+
+

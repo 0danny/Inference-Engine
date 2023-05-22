@@ -8,9 +8,9 @@ namespace Inference_Engine
     {
         private Method[] methodList = new Method[]
         {
-            new BC(),
-            new FC(),
-            new TT()
+            new BC(), //Backward Chaining
+            new FC(), //Forward Chaining
+            new TT() //Truth Table Checking
         };
 
         private FileParser parser = new();
@@ -61,7 +61,7 @@ namespace Inference_Engine
         private static void Main(string[] args)
         {
             //Hardcoded for the time being, will remove once assignment is ready for submission.
-            args = new string[] { "TT", "Test Data\\test_GeneralKB2.txt" };
+            args = new string[] { "TT", "Test Data\\test_GeneralKB.txt" };
 
             Entry entry = new(args);
         }

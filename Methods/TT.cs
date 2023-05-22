@@ -147,6 +147,8 @@ namespace Inference_Engine.Methods
 
             string[] tokens = postfixExpression.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
 
+            Console.WriteLine(postfixExpression);
+
             foreach (var token in tokens)
             {
                 if (model.ContainsKey(token))  // token is a variable

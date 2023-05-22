@@ -76,6 +76,7 @@ namespace Inference_Engine.Methods
                             searchpath.Add(parts[i]);
                             partstruth[i] = evaluateSentences(parts[i], rules, facts, searchpath);
                         }
+
                         i++;
                     }
 
@@ -83,7 +84,7 @@ namespace Inference_Engine.Methods
                     if(partstruth.All(b => b == true))
                     {
                         return true;
-                    };
+                    }
                 }
 
                 //if only one variable in sentence do this

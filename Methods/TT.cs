@@ -26,8 +26,6 @@ namespace Inference_Engine.Methods
             TTQuery entails = checkEntailment(models, model);
 
             Console.WriteLine(entails.getEntailmentResponse());
-
-            printTruthTable(models, model);
         }
 
         public void printTruthTable(List<Dictionary<string, bool>> models, KnowledgeModel model)
@@ -110,7 +108,6 @@ namespace Inference_Engine.Methods
             // Convert the queue to a list and return it.
             return queue.ToList();
         }
-
 
         private TTQuery checkEntailment(List<Dictionary<string, bool>> models, KnowledgeModel knowledgeModel)
         {

@@ -36,8 +36,10 @@ namespace Inference_Engine.Methods
             facts = model.sentences.Where(s => !s.Contains("=>")).ToList();
 
             //create list to hold searchpath
-            List<string> searchpath = new List<string>();
-            searchpath.Add(model.query);
+            List<string> searchpath = new List<string>
+            {
+                model.query
+            };
 
             return new BCQuery(evaluateSentences(model.query, rules, facts, searchpath), searchpath);
         }

@@ -1,6 +1,7 @@
 ﻿using Inference_Engine.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,7 +12,7 @@ namespace Inference_Engine.Tools
     public class FileParser
     {
         //Create new knowledge model.
-        private KnowledgeModel model = new();
+        private KnowledgeModel model = new KnowledgeModel();
 
         public KnowledgeModel parseFile(string fileName)
         {
@@ -50,12 +51,13 @@ namespace Inference_Engine.Tools
 
         private void parsePropositonSymbols(string tellLine)
         {
-            MatchCollection symbolMatches = Regex.Matches(tellLine, @"[a-z]\d*");
+            MatchCollection symbolMatches = Regex.Matches(tellLine, @"[a-z]\d*"); // Find matches for proposition symbols using a regular expression
 
             foreach (Match m in symbolMatches)
             {
-                string symbol = m.Value.Trim();
+                string symbol = m.Value.Trim(); // Get the matched symbol
 
+                // If the symbol is not already present in the model's symbols list, add it
                 if (!model.symbols.Contains(symbol))
                 {
                     model.symbols.Add(symbol);
@@ -65,11 +67,11 @@ namespace Inference_Engine.Tools
 
         public void parseKnowledgeStrings(string tellLine)
         {
-            foreach (string line in tellLine.Split(';'))
+            foreach (string line in tellLine.Split(';')) // Split the tell line into individual strings separated by semicolons
             {
-                if (!string.IsNullOrEmpty(line))
+                if (!string.IsNullOrEmpty(line)) // If the line is not empty or null
                 {
-                    model.sentences.Add(line.Trim());
+                    model.sentences.Add(line.Trim()); // Add the trimmed line to the model's sentences list
                 }
             }
         }

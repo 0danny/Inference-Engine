@@ -8,9 +8,9 @@ namespace Inference_Engine.Models
 {
     public class KnowledgeModel
     {
-        public List<string> sentences { get; set; } = new();
+        public List<string> sentences { get; set; } = new List<string>();
 
-        public List<string> symbols { get; set; } = new();
+        public List<string> symbols { get; set; } = new List<string>();
 
         public string knowledgeBase { get; set; } = "";
 

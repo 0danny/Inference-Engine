@@ -32,7 +32,7 @@ namespace Inference_Engine.Models
     public class FCQuery
     {
         private bool response { get; set; } = false;
-        private List<string> queue { get; set; } = new();
+        private List<string> queue { get; set; } = new List<string>();
 
         public FCQuery(bool response, List<string> queue)
         {
@@ -49,7 +49,7 @@ namespace Inference_Engine.Models
     public class BCQuery
     {
         private bool response { get; set; } = false;
-        private List<string> searchpath { get; set; } = new();
+        private List<string> searchpath { get; set; } = new List<string>();
 
         public BCQuery(bool response, List<string> searchpath)
         {

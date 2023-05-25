@@ -1,6 +1,9 @@
 ﻿using Inference_Engine.Methods;
 using Inference_Engine.Models;
 using Inference_Engine.Tools;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace Inference_Engine
 {
@@ -13,7 +16,7 @@ namespace Inference_Engine
             new TT() //Truth Table Checking
         };
 
-        private FileParser parser = new();
+        private FileParser parser = new FileParser();
 
         public Entry(string[] args)
         {
@@ -27,7 +30,7 @@ namespace Inference_Engine
             }
 
             //Ensure the method exists.
-            Method? methodSearch = methodList.FirstOrDefault(elem => elem.shortName == args[0]);
+            Method methodSearch = methodList.FirstOrDefault(elem => elem.shortName == args[0]);
 
             if(methodSearch != null)
             {
@@ -60,10 +63,7 @@ namespace Inference_Engine
 
         private static void Main(string[] args)
         {
-            //Hardcoded for the time being, will remove once assignment is ready for submission.
-            args = new string[] { "TT", "Test Data\\test_GeneralKB.txt" };
-
-            Entry entry = new(args);
+            Entry entry = new Entry(args);
         }
     }
 }

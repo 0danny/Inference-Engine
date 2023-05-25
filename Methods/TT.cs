@@ -150,8 +150,6 @@ namespace Inference_Engine.Methods
 
             string[] tokens = postfixExpression.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries); // Split the postfix expression into tokens
 
-            Console.WriteLine(postfixExpression); // Output the postfix expression (for debugging or informational purposes)
-
             // Iterate through each token in the postfix expression
             foreach (var token in tokens)
             {

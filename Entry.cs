@@ -40,8 +40,6 @@ namespace Inference_Engine
                     //Parse the file using Knowledge Model base.
                     KnowledgeModel model = parser.parseFile(args[1]);
 
-                    model.printData();
-
                     //Send the Knowledge Model to the appropriate search method.
                     methodSearch.runMethod(model);
                 }
@@ -55,6 +53,7 @@ namespace Inference_Engine
                 //If method does not exist, explain and then print all of the available methods.
                 Console.WriteLine($"Could not find method: [{args[0]}], available methods are:");
 
+                //List out all of the methods.
                 Console.WriteLine(string.Join(Environment.NewLine, methodList.Select(m => $"[{m.shortName}] {m.name}")));
             }
 
